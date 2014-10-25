@@ -1,0 +1,124 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{float}
+\usepackage{epsfig,scrpage2,graphicx}
+ 
+%--------------------------------------------------------------------------------------------------------------------------------------------
+% DynamicTable.tex
+%
+% Example creating a graphics table with functional programming in LaTeX to handle dynamic input, in this case comma-seperated lists.
+%--------------------------------------------------------------------------------------------------------------------------------------------
+
+
+\setlength{\textwidth}{18.9cm}
+\setlength{\textheight}{27.7cm}
+\setlength{\oddsidemargin}{-1.45cm}
+\topmargin -2.5cm \headsep 0cm
+
+%----------------------------------------------------------------------
+% Width of images in table
+\newlength{\plotWidth}
+\setlength{\plotWidth}{30 mm}
+% Offset of row labels
+\newlength{\rowLabelOffset}
+\setlength{\rowLabelOffset}{10 mm}
+%----------------------------------------------------------------------
+
+
+\makeatletter
+% Functional foreach construct 
+% #1 - Function to call on each comma-separated item in #3
+% #2 - Parameter to pass to function in #1 as first parameter
+% #3 - Comma-separated list of items to pass as second parameter to function #1
+\def\foreach#1#2#3{%
+  \@test@foreach{#1}{#2}#3,\@end@token%
+}
+
+% Internal helper function - Eats one input
+\def\@swallow#1{}
+
+% Internal helper function - Checks the next character after #1 and #2 and 
+% continues loop iteration if \@end@token is not found 
+\def\@test@foreach#1#2{%
+  \@ifnextchar\@end@token%
+    {\@swallow}%
+    {\@foreach{#1}{#2}}%
+}
+
+% Internal helper function - Calls #1{#2}{#3} and recurses
+% The magic of splitting the third parameter occurs in the pattern matching of the \def
+\def\@foreach#1#2#3,#4\@end@token{%
+  #1{#2}{#3}%
+  \@test@foreach{#1}{#2}#4\@end@token%
+}
+\makeatother
+
+
+%--------------------------------------------------------------------------------------------------------------------------------------------
+% GraphicsTable
+%--------------------------------------------------------------------------------------------------------------------------------------------
+%
+% Makes graphics table with dynamic size using functionals.
+%
+
+\def\makeGraphicElement#1#2{& \includegraphics[width=\plotWidth]{#1/#2}}
+\def\makeColumnHeaderElement#1{& {\large \bf #1} }
+\def\makeColumnHeader#1{\foreach{\makeColumnHeaderElement}{}{#1} \\}
+
+%----------------------------------------------------------------------
+% beginGraphicsTable
+%----------------------------------------------------------------------
+% #1 = Section title, #2 = Column alignment, #3 = Column labels
+\def\beginGraphicsTable#1#2#3{
+	\section*{#1}
+	\vspace{-2mm}
+	\begin{table}[h!]
+	\begin{tabular}{#2}
+	\makeColumnHeader{#3} %	\foreach{\makeColumnHeaderElement}{}{#2} \\
+}
+
+%----------------------------------------------------------------------
+% makeGraphicsRow
+%----------------------------------------------------------------------
+% #1 = Row label, #2 = Base directory, #3 = Image directory relative to the base directory 
+\def\makeGraphicsRow#1#2#3{\multicolumn{1}{c}{\raisebox{\rowLabelOffset}{\rotatebox{90}{\large \bf #1}}}  \foreach{\makeGraphicElement}{#2}{#3} \\}
+
+%----------------------------------------------------------------------
+% endGraphicsTable
+%----------------------------------------------------------------------
+% #1 = Caption
+\def\endGraphicsTable#1{
+	\end{tabular}
+	 \caption{#1}
+	\end{table}
+}
+%--------------------------------------------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+%----------------------------------------------------------------------
+% Begin document
+%----------------------------------------------------------------------
+\begin{document}
+
+\setcounter{page}{0}
+\pagenumbering{arabic}
+
+
+
+% Create a graphics table
+\beginGraphicsTable{Table of cats}{rccc}{grumpycat,teeth,business}
+	\makeGraphicsRow{Row 1}{/home/mark/Code/Latex}{Grumpy-Cat-Tardar-Sauce-001.jpg,    cat-teeth.jpg,    cat-businessman.jpg}
+	\makeGraphicsRow{Row 2}{/home/mark/Code/Latex}{Grumpy-Cat-Tardar-Sauce-001.jpg,    cat-teeth.jpg,    Grumpy-Cat-Tardar-Sauce-001.jpg}
+	\makeGraphicsRow{Row 3}{/home/mark/Code/Latex}{cat-businessman.jpg,                            cat-teeth.jpg,    cat-businessman.jpg}
+\endGraphicsTable{ Cat matrix. }
+
+
+
+\end{document}
